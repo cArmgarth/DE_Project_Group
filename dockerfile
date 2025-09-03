@@ -21,8 +21,8 @@ RUN uv sync --frozen
 # Copy application code
 COPY main.py ./
 
-# Expose port 8080 (Cloud Run default)
-EXPOSE 8080
+# Expose port 5000
+EXPOSE 5000
 
 # Set environment variables
 ENV FLASK_APP=main.py
