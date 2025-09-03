@@ -24,11 +24,6 @@ steps:
       '--region', 'europe-north2',
       '--platform', 'managed',
       '--allow-unauthenticated',
-      '--port', '8080',
-      '--set-env-vars', 'PORT=8080',
-      '--memory', '512Mi',
-      '--cpu', '1',
-      '--max-instances', '10',
       '--quiet',
     ]
 
