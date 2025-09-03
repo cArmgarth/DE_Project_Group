@@ -27,7 +27,6 @@ EXPOSE 8080
 # Set environment variables
 ENV FLASK_APP=main.py
 ENV FLASK_ENV=production
-ENV PORT=8080
 
 # Run the application
 CMD ["uv", "run", "python", "main.py"]
