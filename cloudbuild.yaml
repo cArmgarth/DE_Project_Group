@@ -1,11 +1,11 @@
-# Cloud Build pipeline for FastAPI → Artifact Registry → Cloud Run
+# Cloud Build pipeline for Flask → Artifact Registry → Cloud Run
 # Region/repository are set for europe-north2 and de-pipeline; adjust if needed
 
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
-      '-t', 'europe-north2-docker.pkg.dev/$PROJECT_ID/team-tinfoil/fastapi-demo:${SHORT_SHA}',
+      '-t', 'europe-north2-docker.pkg.dev/$PROJECT_ID/team-tinfoil/flask-app:${SHORT_SHA}',
       '-f', 'dockerfile',
       '.',
     ]
@@ -13,23 +13,24 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'push',
-      'europe-north2-docker.pkg.dev/$PROJECT_ID/team-tinfoil/fastapi-demo:${SHORT_SHA}',
+      'europe-north2-docker.pkg.dev/$PROJECT_ID/team-tinfoil/flask-app:${SHORT_SHA}',
     ]
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args: [
-      'run', 'deploy', 'fastapi-demo',
-      '--image', 'europe-north2-docker.pkg.dev/$PROJECT_ID/team-tinfoil/fastapi-demo:${SHORT_SHA}',
+      'run', 'deploy', 'flask-app',
+      '--image', 'europe-north2-docker.pkg.dev/$PROJECT_ID/team-tinfoil/flask-app:${SHORT_SHA}',
       '--region', 'europe-north2',
       '--platform', 'managed',
       '--allow-unauthenticated',
       '--port', '8080',
+      '--set-env-vars', 'PORT=8080',
       '--quiet',
     ]
 
 images:
-  - 'europe-north2-docker.pkg.dev/$PROJECT_ID/team-tinfoil/fastapi-demo:${SHORT_SHA}'
+  - 'europe-north2-docker.pkg.dev/$PROJECT_ID/team-tinfoil/flask-app:${SHORT_SHA}'
 
 options:
   logging: CLOUD_LOGGING_ONLY
