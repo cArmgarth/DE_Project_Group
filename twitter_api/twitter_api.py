@@ -1,6 +1,5 @@
 
 import os
-import time
 import tweepy
 import pandas as pd
 from datetime import datetime
