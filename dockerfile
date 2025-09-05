@@ -20,6 +20,7 @@ RUN uv sync --frozen
 
 # Copy application code
 COPY main.py ./
+COPY fetchers/ ./fetchers/
 
 # Expose port 8080 (Cloud Run default)
 EXPOSE 8080
