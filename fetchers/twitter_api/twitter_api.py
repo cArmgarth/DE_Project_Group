@@ -39,15 +39,7 @@ def get_twitter_data():
         data = [{"start": c["start"], "count": c["tweet_count"]} for c in resp.data]
         df = pd.DataFrame(data)
         
-        # Create hist_data folder if it doesn't exist
-        os.makedirs("hist_data", exist_ok=True)
-        
-        # Generate timestamped filename and save to CSV
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"hist_data/tweet_counts_{timestamp}.csv"
-        df.to_csv(filename, index=False)
-        
-        return df, filename
+        return df, None
     except Exception as e:
         print(f"Error fetching Twitter data: {e}")
         return pd.DataFrame(), None
@@ -55,7 +47,7 @@ def get_twitter_data():
 @app.route('/')
 def home():
     """Home page showing Twitter data as JSON"""
-    df, filename = get_twitter_data()
+    df, _ = get_twitter_data()
     
     if df.empty:
         return jsonify({
@@ -75,8 +67,7 @@ def home():
         "count": len(data),
         "query": "(#ufo OR #alien OR #uap OR #ufosightings OR \"ufo sighting\" OR \"alien sighting\" OR \"uap sighting\") lang:en -is:retweet",
         "language": "English only",
-        "excludes": "Retweets",
-        "filename": filename
+        "excludes": "Retweets"
     })
 
 @app.route('/api/data')
