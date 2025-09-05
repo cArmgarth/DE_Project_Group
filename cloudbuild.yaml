@@ -1,8 +1,8 @@
-# Cloud Build Configuration for Flask App Deployment
-# This pipeline builds a Docker image, pushes it to Artifact Registry, and deploys to Cloud Run
+# Cloud Build Configuration for Main Flask App Deployment
+# This pipeline builds the main Flask app (main.py) only, excluding fetchers
 # 
 # Pipeline Flow:
-# 1. Build Docker image from dockerfile
+# 1. Build Docker image from main dockerfile
 # 2. Push image to Google Artifact Registry (tinfoil repository)
 # 3. Deploy the image to Cloud Run service
 
