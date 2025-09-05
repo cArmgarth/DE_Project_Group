@@ -1,6 +1,5 @@
 import os
 import tweepy
-import pandas as pd
 from flask import Flask, jsonify
 from dotenv import load_dotenv
 
