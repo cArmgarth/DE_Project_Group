@@ -22,6 +22,6 @@ COPY twitter_api.py ./
 # Debug: List files to see what's actually in the container
 RUN ls -la /app/
 
-# Run the Twitter API script
-CMD ["python", "twitter_api.py"]
+# Run the Twitter API script with gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--timeout", "120", "twitter_api:app"]
 
