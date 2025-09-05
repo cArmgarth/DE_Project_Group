@@ -1,9 +1,9 @@
-# Cloud Build Configuration for Flask App Deployment
+# Cloud Build Configuration for Twitter API Deployment
 # This pipeline builds a Docker image, pushes it to Artifact Registry, and deploys to Cloud Run
 # 
 # Pipeline Flow:
 # 1. Build Docker image from dockerfile
-# 2. Push image to Google Artifact Registry (tinfoil repository)
+# 2. Push image to Google Artifact Registry (twitter-api repository)
 # 3. Deploy the image to Cloud Run service
 
 steps:
@@ -13,18 +13,18 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
-      '-t', 'europe-north2-docker.pkg.dev/$PROJECT_ID/tinfoil/flask-app:${SHORT_SHA}',
+      '-t', 'europe-north2-docker.pkg.dev/$PROJECT_ID/twitter-api/twitter-api:${SHORT_SHA}',
       '-f', 'dockerfile',  # Specify the dockerfile to use
       '.',                 # Build context (current directory)
     ]
 
   # Step 2: Push Image to Artifact Registry
   # Pushes the built image to our private Docker registry in Google Cloud
-  # The image will be stored in the 'tinfoil' repository in europe-north2 region
+  # The image will be stored in the 'twitter-api' repository in europe-north2 region
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'push',
-      'europe-north2-docker.pkg.dev/$PROJECT_ID/tinfoil/flask-app:${SHORT_SHA}',
+      'europe-north2-docker.pkg.dev/$PROJECT_ID/twitter-api/twitter-api:${SHORT_SHA}',
     ]
 
   # Step 3: Deploy to Cloud Run
@@ -33,8 +33,8 @@ steps:
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args: [
-      'run', 'deploy', 'flask-app',  # Deploy service named 'flask-app'
-      '--image', 'europe-north2-docker.pkg.dev/$PROJECT_ID/tinfoil/flask-app:${SHORT_SHA}',
+      'run', 'deploy', 'twitter-api',  # Deploy service named 'twitter-api'
+      '--image', 'europe-north2-docker.pkg.dev/$PROJECT_ID/twitter-api/twitter-api:${SHORT_SHA}',
       '--region', 'europe-north2',   # Deploy in europe-north2 region
       '--platform', 'managed',       # Use fully managed Cloud Run
       '--allow-unauthenticated',     # Allow public access (no authentication required)
@@ -44,7 +44,7 @@ steps:
 # Images to be built and stored
 # This tells Cloud Build which images to track and make available
 images:
-  - 'europe-north2-docker.pkg.dev/$PROJECT_ID/tinfoil/flask-app:${SHORT_SHA}'
+  - 'europe-north2-docker.pkg.dev/$PROJECT_ID/twitter-api/twitter-api:${SHORT_SHA}'
 
 # Build options
 # Configure logging to only show in Cloud Logging (not in build output)
