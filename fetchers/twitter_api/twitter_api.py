@@ -3,7 +3,7 @@ import os
 import tweepy
 import pandas as pd
 from datetime import datetime
-from flask import Flask, render_template_string
+from flask import Flask, jsonify
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -54,57 +54,30 @@ def get_twitter_data():
 
 @app.route('/')
 def home():
-    """Home page showing Twitter data"""
+    """Home page showing Twitter data as JSON"""
     df, filename = get_twitter_data()
     
     if df.empty:
-        return render_template_string("""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Twitter UFO Data</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 40px; }
-                .error { color: red; }
-            </style>
-        </head>
-        <body>
-            <h1>Twitter UFO Data</h1>
-            <p class="error">Error fetching data. Please check your Twitter API credentials.</p>
-        </body>
-        </html>
-        """)
+        return jsonify({
+            "status": "error",
+            "message": "Error fetching data. Please check your Twitter API credentials.",
+            "data": [],
+            "query": "(#ufo OR #alien OR #uap OR #ufosightings OR \"ufo sighting\" OR \"alien sighting\" OR \"uap sighting\") lang:en -is:retweet"
+        })
     
-    # Convert DataFrame to HTML table
-    table_html = df.to_html(classes='table table-striped', table_id='twitter-data', escape=False)
+    # Convert DataFrame to JSON
+    data = df.to_dict('records')
     
-    return render_template_string("""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Twitter UFO Data</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 40px; }
-            .table { border-collapse: collapse; width: 100%; }
-            .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            .table th { background-color: #f2f2f2; }
-            .table tr:nth-child(even) { background-color: #f9f9f9; }
-            h1 { color: #333; }
-            .info { background-color: #e7f3ff; padding: 10px; border-radius: 5px; margin: 20px 0; }
-        </style>
-    </head>
-    <body>
-        <h1>Twitter UFO Data</h1>
-        <div class="info">
-            <p><strong>Query:</strong> #ufo OR #alien OR #uap OR #ufosightings OR "ufo sighting" OR "alien sighting" OR "uap sighting"</p>
-            <p><strong>Language:</strong> English only</p>
-            <p><strong>Excludes:</strong> Retweets</p>
-            <p><strong>Data saved to:</strong> {{ filename }}</p>
-        </div>
-        {{ table|safe }}
-    </body>
-    </html>
-    """, table=table_html, filename=filename)
+    return jsonify({
+        "status": "success",
+        "message": "Twitter UFO data retrieved successfully",
+        "data": data,
+        "count": len(data),
+        "query": "(#ufo OR #alien OR #uap OR #ufosightings OR \"ufo sighting\" OR \"alien sighting\" OR \"uap sighting\") lang:en -is:retweet",
+        "language": "English only",
+        "excludes": "Retweets",
+        "filename": filename
+    })
 
 @app.route('/api/data')
 def api_data():
