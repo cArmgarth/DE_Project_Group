@@ -14,7 +14,7 @@ steps:
     args: [
       'build',
       '-t', 'europe-north2-docker.pkg.dev/$PROJECT_ID/twitter-api/twitter-api:${SHORT_SHA}',
-      '-f', 'dockerfile',  # Specify the dockerfile to use
+      '-f', 'fetchers/twitter_api/dockerfile',  # Specify the correct dockerfile path
       'fetchers/twitter_api/',  # Build context (twitter_api directory)
       '--no-cache',        # Force rebuild without cache
     ]
