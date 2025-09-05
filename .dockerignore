@@ -1,0 +1,11 @@
+# Ignore fetchers directory - these are built separately
+fetchers/
+
+# Ignore git files
+.git/
+.gitignore
+
+# Ignore documentation
+README.md
+docs/
+

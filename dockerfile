@@ -18,9 +18,8 @@ RUN pip install uv
 # Install Python dependencies
 RUN uv sync --frozen
 
-# Copy application code
+# Copy application code (main Flask app only)
 COPY main.py ./
-COPY fetchers/ ./fetchers/
 
 # Expose port 8080 (Cloud Run default)
 EXPOSE 8080
