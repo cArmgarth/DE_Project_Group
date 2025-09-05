@@ -18,6 +18,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY twitter_api.py ./
 
+# Debug: List files to see what's actually in the container
+RUN ls -la /app/
+
 # Run the Twitter API script
 CMD ["python", "twitter_api.py"]
 
