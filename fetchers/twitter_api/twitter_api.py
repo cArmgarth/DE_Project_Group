@@ -13,10 +13,19 @@ load_dotenv()
 app = Flask(__name__)
 
 # Initialize Twitter client
-client = tweepy.Client(bearer_token=os.environ["X_BEARER"])
+bearer_token = os.environ.get("X_BEARER")
+if not bearer_token:
+    print("Warning: X_BEARER environment variable not set. Twitter API will not work.")
+    client = None
+else:
+    client = tweepy.Client(bearer_token=bearer_token)
 
 def get_twitter_data():
     """Fetch Twitter data and return as DataFrame"""
+    if not client:
+        print("Twitter client not initialized. Check X_BEARER environment variable.")
+        return pd.DataFrame(), None
+    
     query = '(#ufo OR #alien OR #uap OR #ufosightings OR "ufo sighting" OR "alien sighting" OR "uap sighting") lang:en -is:retweet'
     
     try:
