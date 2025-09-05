@@ -11,10 +11,7 @@ app = Flask(__name__)
 
 # Initialize Twitter client
 bearer_token = os.environ.get("X_BEARER")
-if bearer_token:
-    client = tweepy.Client(bearer_token=bearer_token)
-else:
-    client = None
+client = tweepy.Client(bearer_token=bearer_token) if bearer_token else None
 
 @app.route('/')
 def home():
@@ -25,25 +22,18 @@ def home():
             "data": []
         })
     
-    try:
-        # Simple query for UFO tweets
-        query = '#ufo OR #alien lang:en -is:retweet'
-        resp = client.get_recent_tweets_count(query=query, granularity="day")
-        
-        # Convert to simple list
-        data = [{"date": c["start"], "count": c["tweet_count"]} for c in resp.data]
-        
-        return jsonify({
-            "query": query,
-            "data": data,
-            "total_days": len(data)
-        })
-        
-    except Exception as e:
-        return jsonify({
-            "error": f"Failed to fetch data: {str(e)}",
-            "data": []
-        })
+    # Simple query for UFO tweets
+    query = '#ufo OR #alien lang:en -is:retweet'
+    resp = client.get_recent_tweets_count(query=query, granularity="day")
+    
+    # Convert to simple list
+    data = [{"date": c["start"], "count": c["tweet_count"]} for c in resp.data]
+    
+    return jsonify({
+        "query": query,
+        "data": data,
+        "total_days": len(data)
+    })
 
 @app.route('/health')
 def health():
