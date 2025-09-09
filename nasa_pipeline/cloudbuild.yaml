@@ -4,14 +4,14 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'gcr.io/team-tinfoil/nasa-pipeline:latest'
+      - 'gcr.io/$PROJECT_ID/nasa-pipeline:latest'
       - '.'
 
   # Push the Docker image to Google Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/team-tinfoil/nasa-pipeline:latest'
+      - 'gcr.io/$PROJECT_ID/nasa-pipeline:latest'
 
 images:
-  - 'gcr.io/team-tinfoil/nasa-pipeline:latest'
+  - 'gcr.io/$PROJECT_ID/nasa-pipeline:latest'

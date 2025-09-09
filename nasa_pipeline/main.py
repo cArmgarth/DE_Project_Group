@@ -1,9 +1,14 @@
-import requests
-import os
-from datetime import datetime, timedelta, date
-from google.cloud import bigquery
-import pandas as pd
 import logging
+import os
+import json
+from datetime import date, datetime, timedelta
+from dotenv import load_dotenv
+
+import pandas as pd
+import requests
+from google.cloud import bigquery
+
+load_dotenv()
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -14,7 +19,7 @@ logger = logging.getLogger(__name__)
 TODAY = date.today().strftime("%Y-%m-%d")
 YESTERDAY = (date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
 NOW = datetime.now()
-API_KEY = os.environ("NASA_API")
+API_KEY = os.environ.get("NASA_API")
 
 
 class DataPipeline:
@@ -23,7 +28,7 @@ class DataPipeline:
         self.client = bigquery.Client()
         self.project_id = os.environ.get("GCP_PROJECT_ID")
         self.dataset_id = os.environ.get("BQ_DATASET_ID", "raw_data")
-        self.table_id = os.environ.get("BQ_TABLE_ID", "nasa_data")
+        self.table_id = os.environ.get("BQ_TABLE_ID", "nasa_raw_data")
 
         logger.info("Pipeline initialized for NASA data collection.")
 
@@ -43,13 +48,13 @@ class DataPipeline:
             response.raise_for_status()
 
             data = response.json()
-            near_earth_objects = data.get("near_earth_objects", {}).get(YESTERDAY, [])
+            near_earth_objects_by_date = data.get("near_earth_objects", {})
+            all_objects = []
+            for date_key in near_earth_objects_by_date:
+                all_objects.extend(near_earth_objects_by_date[date_key])
 
-            for record in near_earth_objects:
-                record["fetched_at"] = NOW.isoformat()
-
-            logger.info(f"Successfully fetched {len(near_earth_objects)} record(s)")
-            return near_earth_objects
+            logger.info(f"Successfully fetched {len(all_objects)} record(s)")
+            return all_objects
         except requests.RequestException as e:
             logger.error(f"Error fetching data: {e}")
             raise
@@ -63,12 +68,23 @@ class DataPipeline:
         table_ref = self.client.dataset(self.dataset_id).table(self.table_id)
 
         try:
-            df = pd.DataFrame(data)
+            transformed_data = [
+                {
+                    "raw_data": json.dumps(record),
+                    "fetched_at": NOW,
+                }
+                for record in data
+            ]
+            df = pd.DataFrame(transformed_data)
             logger.info(f"Prepared {len(df)} record(s) for storage")
 
             job_config = bigquery.LoadJobConfig(
                 write_disposition="WRITE_APPEND",
-                autodetect=False,  # Set to True to handle schema detection
+                autodetect=False,
+                schema=[
+                    bigquery.SchemaField("raw_data", "STRING"),
+                    bigquery.SchemaField("fetched_at", "TIMESTAMP"),
+                ],
             )
 
             logger.info("Writing data to BigQuery")
