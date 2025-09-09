@@ -1,9 +1,10 @@
-import requests
-import os
-from datetime import datetime, timedelta, date
-from google.cloud import bigquery
-import pandas as pd
 import logging
+import os
+from datetime import date, datetime, timedelta
+
+import pandas as pd
+import requests
+from google.cloud import bigquery
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"

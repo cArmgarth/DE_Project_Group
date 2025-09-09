@@ -1,7 +1,8 @@
 import os
+
 import tweepy
-from flask import Flask, jsonify
 from dotenv import load_dotenv
+from flask import Flask, jsonify
 
 # Load environment variables
 load_dotenv()
