@@ -10,3 +10,16 @@ dependencies = [
     "python-dotenv>=1.1.1",
     "tweepy>=4.16.0",
 ]
+
+
+[tool.ruff]
+line-length = 88  # Match Black default
+target-version = "py311"
+
+# Enable/disable rules
+select = ["E", "F", "I", "UP"]
+ignore = ["E501"]  # You might ignore long lines if you use Black
+
+# Enable auto-fix on certain rules
+fixable = ["ALL"]
+unfixable = []
