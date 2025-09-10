@@ -22,8 +22,4 @@ ignore = ["E501"]  # You might ignore long lines if you use Black
 
 # Enable auto-fix on certain rules
 fixable = ["ALL"]
-<<<<<<< HEAD
 unfixable = []
-=======
-unfixable = []
->>>>>>> 8457e02 (Forgot to lint...)
