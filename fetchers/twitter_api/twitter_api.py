@@ -48,7 +48,7 @@ def home():
     data = []
     if resp.data:
         # Get the most recent day (last in the list)
-        most_recent = resp.data[-2]
+        most_recent = resp.data[-1]
         
         # Convert API date to Stockholm timezone and format as date only
         api_date = datetime.fromisoformat(most_recent["start"].replace('Z', '+00:00'))
