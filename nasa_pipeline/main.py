@@ -4,7 +4,6 @@ import json
 from datetime import date, datetime, timedelta
 from dotenv import load_dotenv
 
-import pandas as pd
 import requests
 from google.cloud import bigquery
 
@@ -26,7 +25,7 @@ class DataPipeline:
     def __init__(self):
         """Initialize the data pipeline with BigQuery client and configuration"""
         self.client = bigquery.Client()
-        self.project_id = os.environ.get("GCP_PROJECT_ID")
+        self.project_id = os.environ.get("GCP_PROJECT_ID", "team-tinfoil")
         self.dataset_id = os.environ.get("BQ_DATASET_ID", "raw_data")
         self.table_id = os.environ.get("BQ_TABLE_ID", "nasa_raw_data")
 
@@ -50,8 +49,10 @@ class DataPipeline:
             data = response.json()
             near_earth_objects_by_date = data.get("near_earth_objects", {})
             all_objects = []
-            for date_key in near_earth_objects_by_date:
-                all_objects.extend(near_earth_objects_by_date[date_key])
+            for date_key, objects in near_earth_objects_by_date.items():
+                for obj in objects:
+                    obj["date"] = date_key  # Adds date back in
+                    all_objects.append(obj)
 
             logger.info(f"Successfully fetched {len(all_objects)} record(s)")
             return all_objects
@@ -70,17 +71,20 @@ class DataPipeline:
         try:
             transformed_data = [
                 {
-                    "raw_data": json.dumps(record),
-                    "fetched_at": NOW,
+                    "raw_data": json.dumps(
+                        # Removes "links" field, which exposes api-key
+                        {k: v for k, v in record.items() if k != "links"}
+                    ),
+                    "fetched_at": NOW.isoformat(),
                 }
                 for record in data
             ]
-            df = pd.DataFrame(transformed_data)
-            logger.info(f"Prepared {len(df)} record(s) for storage")
+
+            logger.info(
+                f"Prepared {len(transformed_data)} record(s) for storage")
 
             job_config = bigquery.LoadJobConfig(
                 write_disposition="WRITE_APPEND",
-                autodetect=False,
                 schema=[
                     bigquery.SchemaField("raw_data", "STRING"),
                     bigquery.SchemaField("fetched_at", "TIMESTAMP"),
@@ -88,8 +92,8 @@ class DataPipeline:
             )
 
             logger.info("Writing data to BigQuery")
-            job = self.client.load_table_from_dataframe(
-                df,
+            job = self.client.load_table_from_json(
+                transformed_data,
                 table_ref,
                 job_config=job_config,
             )
@@ -97,7 +101,8 @@ class DataPipeline:
             job.result()
 
             table = self.client.get_table(table_ref)
-            logger.info(f"Write complete! Table now has {table.num_rows} total rows")
+            logger.info(f"Write complete! Table now has {
+                        table.num_rows} total rows")
 
         except Exception as e:
             logger.error(f"Error uploading to BigQuery: {e}")
