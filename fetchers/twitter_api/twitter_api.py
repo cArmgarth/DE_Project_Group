@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import tweepy
 from dotenv import load_dotenv
@@ -44,7 +44,7 @@ def home():
         "query": query,
         "data": data,
         "total_days": len(data),
-        "extraction_date": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+        "extraction_date": datetime.now(UTC).isoformat().replace('+00:00', 'Z')
     }
     
     # Upload to GCS with date-based filename (overwrites previous day's file)
