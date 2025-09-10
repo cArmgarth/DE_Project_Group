@@ -37,6 +37,7 @@ def home():
             "data": []
         })
     
+
     # Simple query for UFO tweets - get only today's data
     query = '#ufo OR #alien lang:en -is:retweet'
     
@@ -77,9 +78,11 @@ def home():
     
     return jsonify(response_data)
 
+
 @app.route('/health')
 def health():
     return {"status": "ok"}
+
 
 def upload_to_gcs(data, filename):
     """Upload data to Google Cloud Storage as JSON"""

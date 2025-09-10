@@ -9,17 +9,15 @@ COPY pyproject.toml uv.lock ./
 
 # Install dependencies using uv
 RUN pip install uv
-RUN uv pip install --no-cache-dir --system -r pyproject.toml
+RUN uv pip install --no-cache-dir --system
 
 # Copy the rest of the application code
 COPY main.py .
 
 # Set environment variables for the pipeline
 # These should be configured in the deployment environment
-ENV GCP_PROJECT_ID=""
 ENV BQ_DATASET_ID="raw_data"
-ENV BQ_TABLE_ID="nasa_data"
-ENV NASA_API=""
+ENV BQ_TABLE_ID="nasa_raw_data"
 
 # Command to run the application
 CMD ["python", "main.py"]
