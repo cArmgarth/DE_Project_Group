@@ -69,7 +69,7 @@ def home():
     
     # Upload to GCS with date-based filename (overwrites previous day's file)
     date_str = datetime.now().strftime("%Y%m%d")
-    filename = f"twitter_ufo_data_{date_str}.json"
+    filename = f"twitter_raw_data_{date_str}.json"
     upload_success = upload_to_gcs(response_data, filename)
     
     # Add upload status to response
