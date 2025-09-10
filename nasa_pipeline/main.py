@@ -1,10 +1,10 @@
+import json
 import logging
 import os
-import json
 from datetime import date, datetime, timedelta
-from dotenv import load_dotenv
 
 import requests
+from dotenv import load_dotenv
 from google.cloud import bigquery
 
 load_dotenv()
