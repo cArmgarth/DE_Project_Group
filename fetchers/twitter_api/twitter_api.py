@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timezone, timedelta
 
 import tweepy
 from dotenv import load_dotenv
@@ -20,6 +20,9 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
+
+# Stockholm timezone (UTC+1 in winter, UTC+2 in summer)
+stockholm_tz = timezone(timedelta(hours=1))
 
 # Initialize Twitter client
 bearer_token = os.environ.get("X_BEARER")
@@ -46,13 +49,22 @@ def home():
     if resp.data:
         # Get the most recent day (last in the list)
         most_recent = resp.data[-2]
-        data = [{"date": most_recent["start"], "count": most_recent["tweet_count"]}]
+        
+        # Convert API date to Stockholm timezone and format as date only
+        api_date = datetime.fromisoformat(most_recent["start"].replace('Z', '+00:00'))
+        stockholm_date = api_date.astimezone(stockholm_tz)
+        formatted_date = stockholm_date.strftime("%Y-%m-%d")
+        
+        data = [{"date": formatted_date, "count": most_recent["tweet_count"]}]
+    
+    # Get current Stockholm time
+    stockholm_time = datetime.now(stockholm_tz)
     
     response_data = {
         "query": query,
         "data": data,
         "total_days": len(data),
-        "extraction_date": datetime.now(UTC).isoformat().replace('+00:00', 'Z')
+        "extraction_date": stockholm_time.strftime("%Y-%m-%d")
     }
     
     # Upload to GCS with date-based filename (overwrites previous day's file)
