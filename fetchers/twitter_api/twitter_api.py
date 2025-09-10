@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import UTC, datetime
 
@@ -6,6 +7,13 @@ import tweepy
 from dotenv import load_dotenv
 from flask import Flask, jsonify
 from google.cloud import storage
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -50,7 +58,10 @@ def home():
     # Upload to GCS with date-based filename (overwrites previous day's file)
     date_str = datetime.now().strftime("%Y%m%d")
     filename = f"twitter_ufo_data_{date_str}.json"
-    upload_to_gcs(response_data, filename)
+    upload_success = upload_to_gcs(response_data, filename)
+    
+    # Add upload status to response
+    response_data["upload_status"] = "success" if upload_success else "failed"
     
     return jsonify(response_data)
 
@@ -61,8 +72,13 @@ def health():
 def upload_to_gcs(data, filename):
     """Upload data to Google Cloud Storage as JSON"""
     try:
-        # Set the service account key path
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'keys/key.json'
+        # Only set service account key if running locally (file exists)
+        # On GCP, use default credentials
+        if os.path.exists('keys/key.json'):
+            os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'keys/key.json'
+            logger.info("Using local service account key")
+        else:
+            logger.info("Using default GCP credentials")
         
         client = storage.Client()
         bucket = client.bucket('twitter_api_bucket')
@@ -87,10 +103,12 @@ def upload_to_gcs(data, filename):
             content_type='application/x-ndjson'
         )
         
-        print(f"Successfully uploaded {filename} to GCS bucket: twitter_api_bucket/raw/")
+        logger.info(f"Successfully uploaded {filename} to GCS bucket: twitter_api_bucket/raw/")
         return True
     except Exception as e:
-        print(f"Error uploading to GCS: {e}")
+        logger.error(f"Error uploading to GCS: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
         return False
 
 if __name__ == '__main__':
