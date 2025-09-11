@@ -15,3 +15,8 @@ steps:
 
 images:
   - 'gcr.io/$PROJECT_ID/nasa-pipeline:latest'
+
+# Build options
+# Configure logging to only show in Cloud Logging (not in build output)
+options:
+  logging: CLOUD_LOGGING_ONLY
