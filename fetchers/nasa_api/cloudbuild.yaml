@@ -14,7 +14,7 @@ steps:
     args: [
       'build',
       '-t', 'europe-north2-docker.pkg.dev/$PROJECT_ID/nasa-api/nasa-api:${SHORT_SHA}',
-      '-f', 'fetchers/nasa_api/dockerfile',  # Specify the correct dockerfile path
+      '-f', 'fetchers/nasa_api/Dockerfile',  # Specify the correct dockerfile path
       'fetchers/nasa_api/',  # Build context (nasa_api directory)
       '--no-cache',        # Force rebuild without cache
     ]
