@@ -1,20 +1,51 @@
+# Cloud Build Configuration for nasa API Deployment
+# This pipeline builds a Docker image, pushes it to Artifact Registry, and deploys to Cloud Run
+# 
+# Pipeline Flow:
+# 1. Build Docker image from dockerfile
+# 2. Push image to Google Artifact Registry (nasa-api repository)
+# 3. Deploy the image to Cloud Run service
+
 steps:
-  # Build the Docker image
+  # Step 1: Build Docker Image
+  # Uses the official Docker builder to create an image from our dockerfile
+  # Tags the image with the commit SHA for version tracking
   - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - 'build'
-      - '-t'
-      - 'gcr.io/$PROJECT_ID/nasa-pipeline:latest'
-      - '.'
+    args: [
+      'build',
+      '-t', 'europe-north2-docker.pkg.dev/$PROJECT_ID/nasa-api/nasa-api:${SHORT_SHA}',
+      '-f', 'fetchers/nasa_api/dockerfile',  # Specify the correct dockerfile path
+      'fetchers/nasa_api/',  # Build context (nasa_api directory)
+      '--no-cache',        # Force rebuild without cache
+    ]
 
-  # Push the Docker image to Google Container Registry
+  # Step 2: Push Image to Artifact Registry
+  # Pushes the built image to our private Docker registry in Google Cloud
+  # The image will be stored in the 'nasa-api' repository in europe-north2 region
   - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - 'push'
-      - 'gcr.io/$PROJECT_ID/nasa-pipeline:latest'
+    args: [
+      'push',
+      'europe-north2-docker.pkg.dev/$PROJECT_ID/nasa-api/nasa-api:${SHORT_SHA}',
+    ]
 
+  # Step 3: Deploy to Cloud Run
+  # Deploys the pushed image as a Cloud Run service
+  # Service will be publicly accessible and auto-scaling
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'nasa-api',  # Deploy service named 'nasa-api'
+      '--image', 'europe-north2-docker.pkg.dev/$PROJECT_ID/nasa-api/nasa-api:${SHORT_SHA}',
+      '--region', 'europe-north2',   # Deploy in europe-north2 region
+      '--platform', 'managed',       # Use fully managed Cloud Run
+      '--allow-unauthenticated',     # Allow public access (no authentication required)
+      '--quiet',                     # Suppress interactive prompts
+    ]
+
+# Images to be built and stored
+# This tells Cloud Build which images to track and make available
 images:
-  - 'gcr.io/$PROJECT_ID/nasa-pipeline:latest'
+  - 'europe-north2-docker.pkg.dev/$PROJECT_ID/nasa-api/nasa-api:${SHORT_SHA}'
 
 # Build options
 # Configure logging to only show in Cloud Logging (not in build output)
