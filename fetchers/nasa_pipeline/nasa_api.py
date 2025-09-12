@@ -68,9 +68,12 @@ def home():
     upload_success = upload_to_gcs(todays_space_rocks, filename)
 
     # Add upload status to response
-    todays_space_rocks["upload_status"] = "success" if upload_success else "failed"
+    response_data = {
+        "data": todays_space_rocks,
+        "upload_status": "success" if upload_success else "failed",
+    }
 
-    return jsonify(todays_space_rocks)
+    return jsonify(response_data)
 
 
 @app.route("/health")
@@ -78,8 +81,8 @@ def health():
     return {"status": "ok"}
 
 
-def upload_to_gcs(data: dict, filename: str) -> bool:
-    """Upload data to Google Cloud Storage as JSON"""
+def upload_to_gcs(data: list[dict], filename: str) -> bool:
+    """Upload data to Google Cloud Storage as NDJSON"""
     try:
         # Only set service account key if running locally (file exists)
         # On GCP, use default credentials
@@ -95,8 +98,8 @@ def upload_to_gcs(data: dict, filename: str) -> bool:
         # Create blob with filename in /raw folder
         blob = bucket.blob(f"raw/{filename}")
 
-        # Convert to NDJSON format with extraction_date and query
-        ndjson_data = str(json.dumps(data)) + "\n"
+        # Convert to NDJSON format
+        ndjson_data = "\n".join(json.dumps(item) for item in data)
 
         # Upload NDJSON data
         blob.upload_from_string(ndjson_data, content_type="application/x-ndjson")
@@ -111,6 +114,7 @@ def upload_to_gcs(data: dict, filename: str) -> bool:
 
         logger.error("Traceback: %s", traceback.format_exc())
         return False
+
 
 
 if __name__ == "__main__":
