@@ -1,23 +1,18 @@
-# Use an official Python runtime as a parent image
-FROM python:3.13-slim
+# Use Python 3.11 slim image (more stable than 3.13)
+FROM python:3.11-slim
 
-# Set the working directory in the container
+# Set working directory
 WORKDIR /app
 
-# Copy the dependency files
-COPY pyproject.toml uv.lock ./
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install dependencies using uv
-RUN pip install uv
-RUN uv pip install --no-cache-dir --system
-
-# Copy the rest of the application code
+# Copy application code
 COPY nasa_api.py .
 
-# Set environment variables for the pipeline
-# These should be configured in the deployment environment
-ENV BQ_DATASET_ID="raw_data"
-ENV BQ_TABLE_ID="nasa_raw_data"
+# Expose port
+EXPOSE 8080
 
-# Command to run the application
+# Run the application
 CMD ["python", "nasa_api.py"]
