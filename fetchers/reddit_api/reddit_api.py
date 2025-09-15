@@ -1,10 +1,12 @@
+import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 import praw
 from dotenv import load_dotenv
 from flask import Flask, jsonify
+from google.cloud import storage
 
 # Configure logging
 logging.basicConfig(
@@ -18,6 +20,9 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
+
+# Stockholm timezone (UTC+1 in winter, UTC+2 in summer)
+stockholm_tz = timezone(timedelta(hours=1))
 
 # Initialize reddit client
 client_id = os.environ.get("REDDIT_CLIENT_ID")
@@ -34,7 +39,7 @@ def home():
     """Show reddit data as JSON"""
     if not reddit:
         return jsonify({
-            "error": "Twitter API not configured. One or more of environment variables missing (REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, user agent)",
+            "error": "Reddit API not configured. One or more of environment variables missing (REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, user agent)",
             "data": []
         })
     
@@ -62,18 +67,86 @@ def home():
 
         # Append data
         if post_date_as_str in posts_data:
-            posts_data[post_date_as_str] += keyword_count
+           posts_data[post_date_as_str] += keyword_count
         else:
-            posts_data[post_date_as_str] = keyword_count
-    
+           posts_data[post_date_as_str] = keyword_count
+    data = [{"date": date, "count": count} for date, count in posts_data.items()]
     # End of TODO - everything between is subject to change, this is simply for testing
+
+    # Get current Stockholm time
+    stockholm_time = datetime.now(stockholm_tz)
+    extraction_date = stockholm_time.strftime("%Y-%m-%d")
+
+    # Most recent day's data
+    # TODO: yes
+    # data = []
+
+    # Prepare data for GCS bucket
+    response_data = {
+        "query":    keywords,                   # TODO: potentially add actual query here somehow?
+        "data":     data,                       # TODO: fix time zone stuff and make the proper data object above
+        "total_days":       len(posts_data),    # TODO: perhaps not necessary since we only want one day? Take look
+        "extraction_date":  extraction_date
+    }
     
-    return jsonify(posts_data)
+
+    # Upload to GCS with date-based filename (overwrites previous day's file)
+    date_str = datetime.now().strftime("%Y%m%d")
+    filename = f"reddit_raw_data_{date_str}.json"
+    upload_success = upload_to_gcs(response_data, filename)
+        
+    # Add upload status to response
+    response_data["upload_status"] = "success" if upload_success else "failed"
+        
+    return jsonify(response_data)
 
 
 @app.route("/health")
 def health():
     return {"status": "ok"}
+
+
+def upload_to_gcs(data, filename):
+    """Upload data to Google Cloud Storage as JSON"""
+    try:
+        # Only set service account key if running locally (file exists)
+        # On GCP, use default credentials
+        if os.path.exists('keys/key.json'):
+            os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'keys/key.json'
+            logger.info("Using local service account key")
+        else:
+            logger.info("Using default GCP credentials")
+        
+        client = storage.Client()
+        bucket = client.bucket("reddit_api_bucket")
+        
+        # Create blob with filename in /raw folder
+        blob = bucket.blob(f"raw/{filename}")
+        
+        # Convert to NDJSON format with extraction_date and query
+        ndjson_data = ""
+        for item in data.get("data", []):
+            # Add extraction_date and query to each record
+            record = {
+                **item,
+                "extraction_date": data.get("extraction_date"),
+                "query": data.get("query")
+            }
+            ndjson_data += json.dumps(record) + "\n"
+        
+        # Upload NDJSON data
+        blob.upload_from_string(
+            ndjson_data,
+            content_type='application/x-ndjson'
+        )
+        
+        logger.info(f"Successfully uploaded {filename} to GCS bucket: reddit_api_bucket/raw/")
+        return True
+    except Exception as e:
+        logger.error(f"Error uploading to GCS: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return False
 
 
 if __name__ == "__main__":
