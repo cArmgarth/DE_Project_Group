@@ -99,7 +99,7 @@ def upload_to_gcs(data: list[dict], filename: str) -> bool:
         blob = bucket.blob(f"raw/{filename}")
 
         # Convert to NDJSON format
-        ndjson_data = "\n".join(json.dumps(item) for item in data)
+        ndjson_data = "\n".join(json.dumps(item) for item in data) + "/n"
 
         # Upload NDJSON data
         blob.upload_from_string(ndjson_data, content_type="application/x-ndjson")
