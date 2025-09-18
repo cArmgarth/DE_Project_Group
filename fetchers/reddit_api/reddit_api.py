@@ -38,6 +38,7 @@ reddit = praw.Reddit(
 def home():
     """Show reddit data as JSON"""
     if not reddit:
+        logger.error("Reddit API not configured. One or more of environment variables missing.")
         return jsonify({
             "error": "Reddit API not configured. One or more of environment variables missing (REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, user agent)",
             "data": []
