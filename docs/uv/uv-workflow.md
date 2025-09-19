@@ -1,130 +1,213 @@
-# Project Workflow with `uv` and Workspaces
+# OBS! ChatGPT blir ibland lite förvirrad, så några av dessa kommandon är lite knasiga. Ska försöka rensa upp i dem, men något fel kan förekomma vad gäller olika flaggor.
 
-This document describes how we organize our project using [`uv`](https://github.com/astral-sh/uv) with **workspaces**, so that each component (fetchers, models) can be managed independently but still share a consistent dependency setup.
+# uv workspace quick reference (monorepo: fetchers + models + frontend)
+
+_Last updated: 2025-09-19_
+
+This repo uses a **uv workspace**: multiple packages (fetchers, models, frontend) in one repo that share **one lockfile** and usually **one virtual environment** at the workspace root.
 
 ---
 
-## 📂 Project Structure
+## Glossary
+
+- **Workspace**: collection of packages managed together with a single `uv.lock`.
+- **Member**: a package (has its own `pyproject.toml`) listed in the root’s `[tool.uv.workspace].members`.
+
+---
+
+## Directory layout (example)
 
 ```
-project-root/
-├── pyproject.toml          # workspace root
-├── uv.lock                 # shared lockfile across all members
-│
+.
+├── pyproject.toml                # Workspace root (may host your FastAPI app)
+├── uv.lock
 ├── fetchers/
-│   ├── fetcher_a/
+│   ├── reddit_api/
 │   │   ├── pyproject.toml
-│   │   ├── src/fetcher_a/
-│   │   │   └── __init__.py
-│   │   └── Dockerfile
-│   ├── fetcher_b/
-│   │   └── ...
-│   └── fetcher_c/
-│       └── ...
-│
+│   │   └── src/reddit_api/...
+│   └── twitter_api/
+│       ├── pyproject.toml
+│       └── src/twitter_api/...
 ├── models/
-│   ├── model_x/
-│   │   ├── pyproject.toml
-│   │   └── Dockerfile
-│   └── model_y/
-│       └── ...
-│
-└── tests/
+│   └── my_model/
+│       ├── pyproject.toml
+│       └── src/my_model/...
+└── frontend/
+    ├── pyproject.toml
+    └── streamlit_app.py
 ```
 
-Each **fetcher** and **model** is its own project (with its own `pyproject.toml` and dependencies), and the root manages them all as a **workspace**.
+Root `pyproject.toml` (snippet):
+
+```toml
+[project]
+name = "root-app"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+[tool.uv.workspace]
+members = [
+  "fetchers/*",
+  "models/*",
+  "frontend",
+]
+```
+
+> **Note:** The table is `[tool.uv.workspace]` (singular). Using `[tool.uv.workspaces]` is invalid.
 
 ---
 
-## 🚀 Setting up a new workspace
+## Creating members
 
-1. Initialize the root project (once):
-   ```bash
-   uv init .
-   ```
+From the repo root:
 
-2. Create each member (once per fetcher/model):
-   ```bash
-   uv init fetchers/fetcher_a
-   uv init models/model_x
-   ```
-   This creates a `pyproject.toml` for each member.
-
-3. Add members to the root `pyproject.toml`:
-   ```toml
-   [tool.uv.workspace]
-   members = [
-     "fetchers/fetcher_a",
-     "fetchers/fetcher_b",
-     "fetchers/fetcher_c",
-     "models/model_x",
-     "models/model_y",
-   ]
-   ```
-
-⚠️ **Important:** Running `uv init` inside a subfolder does **not** automatically register it as a workspace member. You must add it manually to `[tool.uv.workspace].members` in the root `pyproject.toml`.
-
----
-
-## 📦 Managing dependencies
-
-### Migrating from `requirements.txt`
-If a member has an existing `requirements.txt`, run:
 ```bash
-uv add -p fetchers/fetcher_a -r fetchers/fetcher_a/requirements.txt
+uv init fetchers/reddit_api
+uv init models/my_model
+uv init frontend
 ```
-This converts it into that member’s `pyproject.toml`.
 
-### Adding new dependencies
-To add dependencies to a specific member:
-```bash
-uv add -p fetchers/fetcher_a requests
-uv add -p models/model_x scikit-learn
-```
+You can also `mkdir` + `cd` into a folder and run `uv init`; if a parent already has a `pyproject.toml`, uv treats it as part of that workspace automatically (unless you pass `--no-workspace`).
 
 ---
 
-## 🔄 Syncing environments
+## Adding & removing dependencies
 
-- Install **everything** for all members:
+**Best practice:** run these commands **inside the target member directory**.
+
+```bash
+# add to root project
+cd /path/to/repo
+uv add fastapi uvicorn
+
+# add to a member
+cd fetchers/reddit_api
+uv add httpx pydantic
+
+# remove from a member
+cd fetchers/reddit_api
+uv remove pydantic
+```
+
+### Importing from `requirements.txt` (migration)
+```bash
+cd fetchers/reddit_api
+uv add -r requirements.txt
+```
+
+> Advanced (no `cd`): you can target a directory with the global `--project` option:
+> `uv --project fetchers/reddit_api add httpx` (same for `remove`, `run`, `lock`, etc.).
+
+---
+
+## Syncing (installing) dependencies
+
+- **Whole workspace** (from root):
   ```bash
   uv sync
   ```
 
-- Install only for a specific member:
+- **Just one member’s declared deps** (from **any** directory):
   ```bash
-  uv sync -p fetchers/fetcher_a
+  uv sync --package reddit_api
   ```
+  > `reddit_api` here is the member’s `project.name` string from its `pyproject.toml`.
 
-- Install for a subset of members:
-  ```bash
-  uv sync -p fetchers/fetcher_a -p models/model_x
-  ```
-
-In all cases, `uv.lock` is updated to keep the whole workspace consistent.
-
----
-
-## 🐳 Docker usage
-
-Each member (fetcher/model) has its own Dockerfile.  
-Inside the Dockerfile for `fetcher_a`, for example, you should run:
-
-```dockerfile
-# Install only this member's deps
-RUN uv sync -p fetchers/fetcher_a --frozen
+Useful flags for CI/Docker:
+```bash
+uv sync --package reddit_api --no-install-local --frozen
+uv sync --package reddit_api --frozen
 ```
 
-This ensures the image is reproducible and consistent with the workspace lockfile.
+---
+
+## Running commands
+
+- **Inside a member (simple & recommended):**
+  ```bash
+  cd frontend
+  uv run streamlit run streamlit_app.py
+
+  cd fetchers/reddit_api
+  uv run python -m reddit_api.cli  # example
+  ```
+
+- **From root, without cd (two options):**
+  - Use the global `--project` to point at the member directory:
+    ```bash
+    uv run --project frontend -- streamlit run streamlit_app.py
+    uv run --project fetchers/reddit_api -- python -m reddit_api.cli
+    ```
+  - Or use the workspace-aware switch (also valid):
+    ```bash
+    uv run --package reddit_api -- python -m reddit_api.cli
+    uv run --package frontend -- streamlit run streamlit_app.py
+    ```
+
+> Tip: Put `--` before your program’s args so uv doesn’t parse them.
 
 ---
 
-## ✅ Summary
+## Locking & exporting
 
-- The repo is one **workspace**.  
-- Each fetcher/model is a **workspace member**.  
-- Use `uv init` in each member folder once.  
-- **Always add new members manually** to `[tool.uv.workspace].members` in the root `pyproject.toml`.  
-- Dependencies are managed per member, but locked consistently at the root.  
-- Use `uv sync` at the root for everything, or `uv sync -p path` for one member.  
-- Each member has its own Dockerfile for cloud deployment.
+- Update the **workspace** lockfile:
+  ```bash
+  uv lock
+  ```
+
+- Export requirements for a **single member** (helpful when another system expects `requirements.txt`):
+  ```bash
+  uv export --package reddit_api > requirements.txt
+  ```
+
+- Export for the **entire workspace**:
+  ```bash
+  uv export --all-packages > requirements.txt
+  ```
+
+---
+
+## Workspace configuration checklist
+
+- Root `pyproject.toml`:
+  - Has `[tool.uv.workspace].members` listing all subprojects (globs OK).
+  - Each listed directory contains a valid `pyproject.toml`.
+
+- Each member’s `pyproject.toml`:
+  - Has a unique `[project].name` (this is what `--package` targets).
+  - Uses `src/` layout for libraries (`uv init --lib` creates it).
+
+---
+
+## Common pitfalls
+
+- **Using `-p <path>`** with modern uv commands — that flag no longer means “project path”.
+- **Expecting per-member venvs** — a workspace shares **one** `.venv` at the root by default.
+- **Forgetting `--`** before app args with `uv run`.
+
+---
+
+## Quick recipes
+
+### Migrate a fetcher that has `requirements.txt`
+```bash
+uv init fetchers/reddit_api --lib
+cd fetchers/reddit_api
+uv add -r requirements.txt
+uv sync --package reddit_api
+```
+
+### Start a Streamlit frontend
+```bash
+uv init frontend --app
+cd frontend
+uv add streamlit
+uv run streamlit run streamlit_app.py
+```
+
+### Run the FastAPI app at root
+```bash
+cd /path/to/repo
+uv add fastapi uvicorn
+uv run -- uvicorn app.main:app --reload
+```
