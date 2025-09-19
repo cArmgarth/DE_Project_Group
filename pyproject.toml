@@ -5,11 +5,9 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "flask>=3.0.0",
-    "google-cloud-storage>=3.3.1",
-    "pandas>=2.3.2",
-    "python-dotenv>=1.1.1",
-    "tweepy>=4.16.0",
+    "flask==3.0.0",
+    "google-cloud-storage>=2.10.0",
+    "python-dotenv>=1.1.1"
 ]
 
 [tool.ruff]
@@ -25,6 +23,11 @@ ignore = ["E501"]  # You might ignore long lines if you use Black
 fixable = ["ALL"]
 unfixable = []
 
-[tool.uv.workspaces]
-members = ["fetchers/nasa_api"]
+[tool.uv.workspace]
+members = [
+    "fetchers/nasa_api",
+    "fetchers/reddit_api",
+    "fetchers/twitter_api",
+    "frontend",
+]
 
