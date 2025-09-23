@@ -7,6 +7,7 @@ members = [
     "de-project-group",
     "elasticnet-regression",
     "lasso-regression",
+    "loader",
     "nasa-pipeline",
     "reddit-api",
     "ridge-regression",
@@ -526,6 +527,21 @@ requires-dist = [
 ]
 
 [[package]]
+name = "loader"
+version = "0.1.0"
+source = { virtual = "models/loader" }
+dependencies = [
+    { name = "db-dtypes" },
+    { name = "google-cloud-bigquery" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "db-dtypes", specifier = ">=1.4.3" },
+    { name = "google-cloud-bigquery", specifier = ">=3.38.0" },
+]
+
+[[package]]
 name = "markupsafe"
 version = "3.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -941,8 +957,6 @@ name = "ridge-regression"
 version = "0.1.0"
 source = { virtual = "models/ridge_regression" }
 dependencies = [
-    { name = "db-dtypes" },
-    { name = "google-cloud-bigquery" },
     { name = "matplotlib" },
     { name = "pandas" },
     { name = "scikit-learn" },
@@ -950,8 +964,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "db-dtypes", specifier = ">=1.4.3" },
-    { name = "google-cloud-bigquery", specifier = ">=3.38.0" },
     { name = "matplotlib", specifier = ">=3.10.6" },
     { name = "pandas", specifier = ">=2.3.2" },
     { name = "scikit-learn", specifier = ">=1.7.2" },

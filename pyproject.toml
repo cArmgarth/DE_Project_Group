@@ -32,5 +32,6 @@ members = [
     "models/ridge_regression",
     "models/lasso_regression",
     "models/elasticnet_regression",
+    "models/loader",
 ]
 

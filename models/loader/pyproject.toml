@@ -1,11 +1,10 @@
 [project]
-name = "ridge-regression"
+name = "loader"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "matplotlib>=3.10.6",
-    "pandas>=2.3.2",
-    "scikit-learn>=1.7.2",
+    "db-dtypes>=1.4.3",
+    "google-cloud-bigquery>=3.38.0",
 ]
