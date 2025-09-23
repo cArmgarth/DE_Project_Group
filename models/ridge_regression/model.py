@@ -1,8 +1,8 @@
+import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.linear_model import Ridge
-from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import mean_squared_error
-import matplotlib.pyplot as plt
+from sklearn.model_selection import GridSearchCV, train_test_split
 
 df = pd.read_csv("data/local_copy.csv")
 

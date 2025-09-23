@@ -1,11 +1,11 @@
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 from sklearn.linear_model import Lasso
-from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import mean_squared_error
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.multioutput import MultiOutputRegressor
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 # --- Load dataset ---
 df = pd.read_csv("data/local_copy.csv")
