@@ -29,5 +29,7 @@ members = [
     "fetchers/reddit_api",
     "fetchers/twitter_api",
     "frontend",
+    "models/ridge_regression",
+    "models/lasso_regression",
 ]
 
