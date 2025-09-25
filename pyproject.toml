@@ -29,5 +29,7 @@ members = [
     "fetchers/reddit_api",
     "fetchers/twitter_api",
     "frontend",
+    "models/c_models",
+    "models/c_models/data_loader",
 ]
 
