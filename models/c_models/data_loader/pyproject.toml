@@ -7,7 +7,6 @@ requires-python = ">=3.13"
 dependencies = [
     "db-dtypes>=1.4.3",
     "google-cloud-bigquery",
-    "pandas",
     "python-dotenv",
     "ruff>=0.13.1",
 ]
