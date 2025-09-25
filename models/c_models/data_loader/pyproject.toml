@@ -9,4 +9,5 @@ dependencies = [
     "google-cloud-bigquery",
     "pandas",
     "python-dotenv",
+    "ruff>=0.13.1",
 ]

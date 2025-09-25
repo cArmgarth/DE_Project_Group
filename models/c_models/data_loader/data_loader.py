@@ -1,8 +1,8 @@
 import os
+
+from dotenv import load_dotenv
 from google.cloud import bigquery
 from google.oauth2 import service_account
-import pandas as pd
-from dotenv import load_dotenv
 
 load_dotenv()
 
