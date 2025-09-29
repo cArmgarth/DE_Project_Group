@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+import joblib
 import pandas as pd
 from sklearn.linear_model import ElasticNet
 from sklearn.metrics import mean_squared_error
@@ -26,7 +26,8 @@ pipe = Pipeline([("scaler", StandardScaler()), ("model", enet)])
 # Parameters for the base estimator inside MultiOutputRegressor
 param_grid = {
     "model__estimator__alpha": [0.001, 0.01, 0.1, 1, 10],
-    "model__estimator__l1_ratio": [0.2, 0.5, 0.8],  # 0=ridge-like, 1=lasso-like
+    # 0=ridge-like, 1=lasso-like
+    "model__estimator__l1_ratio": [0.2, 0.5, 0.8],
     "model__estimator__fit_intercept": [True, False],
 }
 
@@ -43,30 +44,4 @@ y_pred = best_model.predict(X_test)
 mse = mean_squared_error(y_test, y_pred)
 print("Test set MSE:", mse)
 
-# --- Inspect coefficients ---
-estimators = best_model.named_steps["model"].estimators_
-for i, target in enumerate(y.columns):
-    print(f"\nTarget: {target}")
-    print("  Coefficients:", estimators[i].coef_)
-    print("  Intercept:", estimators[i].intercept_)
-
-# --- Visualization: true vs predicted scatter ---
-fig, axes = plt.subplots(1, y.shape[1], figsize=(10, 4))
-
-for i, col in enumerate(y.columns):
-    true_vals = y_test[col].values
-    pred_vals = y_pred[:, i]
-
-    axes[i].scatter(true_vals, pred_vals, alpha=0.7, color="blue")
-    axes[i].plot(
-        [true_vals.min(), true_vals.max()],
-        [true_vals.min(), true_vals.max()],
-        "k--",
-        lw=2,
-    )
-    axes[i].set_xlabel("True " + col)
-    axes[i].set_ylabel("Predicted " + col)
-    axes[i].set_title(f"Elastic Net: {col}")
-
-plt.tight_layout()
-plt.show()
+joblib.dump(best_model, "model.joblib")
