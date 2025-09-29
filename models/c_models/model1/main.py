@@ -1,15 +1,14 @@
-import sys
+import logging
 import os
 import pickle
-import logging
+import sys
 from datetime import datetime
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'data_loader'))
 
 from data_loader import load_data_from_bigquery
-import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 # Configure logging
@@ -66,7 +65,7 @@ with open(model_filename, 'wb') as f:
 logger.info(f"Models saved to '{model_filename}'")
 logger.info("Model data includes:")
 logger.info(f"  - {len(models)} trained models")
-logger.info(f"  - Scaler for feature normalization")
+logger.info("  - Scaler for feature normalization")
 logger.info(f"  - Feature columns: {feature_cols}")
 logger.info(f"  - Target columns: {['reddit_count', 'twitter_count']}")
 
