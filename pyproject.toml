@@ -32,5 +32,6 @@ members = [
     "models/c_models",
     "models/c_models/data_loader",
     "models/c_models/model1",
+    "models/c_models/inference",
 ]
 
