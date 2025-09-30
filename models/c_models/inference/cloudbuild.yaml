@@ -37,8 +37,5 @@ images:
 
 options:
   logging: CLOUD_LOGGING_ONLY
-
-# Build options
-options:
   machineType: 'E2_HIGHCPU_8'
   diskSizeGb: 100
