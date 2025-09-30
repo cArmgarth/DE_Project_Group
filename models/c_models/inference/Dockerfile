@@ -22,8 +22,6 @@ RUN uv sync --frozen --no-dev
 # Copy application code
 COPY main.py ./
 
-# Copy keys directory (will create empty directory if keys/ doesn't exist)
-COPY keys/ ./keys/
 
 # Set environment variables
 ENV PYTHONPATH=/app

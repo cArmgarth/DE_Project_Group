@@ -28,6 +28,7 @@ steps:
       '--memory', '2Gi',
       '--cpu', '2',
       '--max-instances', '10',
+      '--service-account', '$PROJECT_ID@appspot.gserviceaccount.com',
       '--set-env-vars', 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID'
     ]
 
