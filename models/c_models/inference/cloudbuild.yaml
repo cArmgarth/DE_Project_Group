@@ -5,7 +5,8 @@ steps:
       'build',
       '-t', 'gcr.io/$PROJECT_ID/inference-service:$COMMIT_SHA',
       '-t', 'gcr.io/$PROJECT_ID/inference-service:latest',
-      '.'
+      '-f', 'models/c_models/inference/Dockerfile',
+      'models/c_models/inference/'
     ]
 
   # Push the Docker image to Google Container Registry
