@@ -29,7 +29,7 @@ steps:
       '--cpu', '2',
       '--max-instances', '10',
       '--service-account', '$PROJECT_ID@appspot.gserviceaccount.com',
-      '--set-env-vars', 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GCS_MODEL_BUCKET=tinfoil_trained_models,GCS_OUTPUT_BUCKET=tinfoil_trained_models,BIGQUERY_TABLE=team-tinfoil.predictions_raw.predict_this'
+      '--set-env-vars', 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GCS_MODEL_BUCKET=tinfoil_trained_models,GCS_OUTPUT_BUCKET=tinfoil_trained_models,BIGQUERY_TABLE=team-tinfoil.predictions_data.predict_this'
     ]
 
 # Store images in Google Container Registry
