@@ -17,11 +17,9 @@ def run_query(query):
     return rows
 
 
-rows = run_query(
-    "SELECT * FROM `team-tinfoil.training_data.training_combined` LIMIT 10"
-)
+rows = run_query("SELECT * FROM `team-tinfoil.predictions_stg.predictions_compared`")
 
 # Print results.
 st.write("Behold, the :rainbow[secrets of the stars!!!]")
-for row in rows:
-    st.write(row)
+st.bar_chart(data=rows, x="date", y=["reddit_prediction", "reddit_actual"], stack=False)
+st.bar_chart(data=rows, x="date", y=["twitter_prediction", "twitter_actual"])
