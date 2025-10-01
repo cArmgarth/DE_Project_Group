@@ -100,7 +100,7 @@ def create_separate_plots(df, date_column='date'):
     colors = ['#ffffff', '#00ff00', '#ff1493']  # White, Neon Green, Neon Pink
     
     # Define standard names for legend
-    legend_names = ['True Value', 'Random Forest Regressor', 'Elastic']
+    legend_names = ['True Value', 'Random Forrest Regressor', 'Elastic Net Regressor']
     
     # Add all Reddit columns
     for i, col in enumerate(reddit_cols):
@@ -143,7 +143,7 @@ def create_separate_plots(df, date_column='date'):
     # Update layout
     fig.update_layout(
         title=dict(
-            text="<b>Team Tinfoil's Super Mega Prediction Data - Actual vs Predicted</b>",
+            text="<b>Team Tinfoil's Super Mega Prediction Data - True vs Predicted Values</b>",
             x=0.5,
             xanchor='center',
             font=dict(size=18, color="white"),
