@@ -61,45 +61,123 @@ def fetch_data_from_bigquery(table_id=None, limit=100):
         logger.error(f"Error fetching data: {str(e)}")
         return pd.DataFrame()
 
-def create_time_series_plot(df, date_column='date', value_columns=None):
-    """Create a time series plot from DataFrame."""
+def create_separate_plots(df, date_column='date'):
+    """Create separate plots for Reddit and Twitter data showing both actual and predicted values."""
 
     if df.empty:
         return None
     
-    # Auto-detect date and value columns if not specified
+    # Auto-detect date column if not specified
     if date_column not in df.columns:
-        # Find the first date-like column
         for col in df.columns:
             if df[col].dtype == 'datetime64[ns]' or 'date' in col.lower():
                 date_column = col
                 break
     
-    if value_columns is None:
-        # Find numeric columns (excluding date column)
-        value_columns = [col for col in df.columns 
-                        if col != date_column and pd.api.types.is_numeric_dtype(df[col])]
+    # Find all reddit and twitter columns
+    reddit_cols = []
+    twitter_cols = []
     
-    fig = go.Figure()
+    for col in df.columns:
+        if col != date_column and pd.api.types.is_numeric_dtype(df[col]):
+            col_lower = col.lower()
+            if 'reddit' in col_lower:
+                reddit_cols.append(col)
+            elif 'twitter' in col_lower:
+                twitter_cols.append(col)
     
-    # Add traces for each value column
-    for col in value_columns:
-        if col in df.columns:
-            fig.add_trace(go.Scatter(
+    # Create subplots side by side (1 row, 2 columns)
+    from plotly.subplots import make_subplots
+    
+    fig = make_subplots(
+        rows=1, cols=2,
+        subplot_titles=('<b>Reddit</b>', '<b>Twitter</b>'),
+        horizontal_spacing=0.1,
+        shared_yaxes=False
+    )
+    
+    # Colors for both plots
+    colors = ['#ffffff', '#00ff00', '#ff1493']  # White, Neon Green, Neon Pink
+    
+    # Define standard names for legend
+    legend_names = ['True Value', 'Random Forest Regressor', 'Elastic']
+    
+    # Add all Reddit columns
+    for i, col in enumerate(reddit_cols):
+        color = colors[i % len(colors)]
+        symbol = 'circle' if 'true' in col.lower() else 'diamond'
+        
+        fig.add_trace(
+            go.Scatter(
                 x=df[date_column],
                 y=df[col],
                 mode='lines+markers',
-                name=col.replace('_', ' ').title(),
-                line=dict(width=2)
-            ))
+                name=legend_names[i % len(legend_names)],
+                line=dict(color=color, width=3),
+                marker=dict(size=7, symbol=symbol),
+                legendgroup="shared",
+                showlegend=True
+            ),
+            row=1, col=1
+        )
     
+    # Add all Twitter columns (hide legend for these)
+    for i, col in enumerate(twitter_cols):
+        color = colors[i % len(colors)]
+        symbol = 'circle' if 'true' in col.lower() else 'diamond'
+        
+        fig.add_trace(
+            go.Scatter(
+                x=df[date_column],
+                y=df[col],
+                mode='lines+markers',
+                name=legend_names[i % len(legend_names)],
+                line=dict(color=color, width=3),
+                marker=dict(size=7, symbol=symbol),
+                legendgroup="shared",
+                showlegend=False
+            ),
+            row=1, col=2
+        )
+    
+    # Update layout
     fig.update_layout(
-        title="Team Tinfoil's Super Mega Prediction Data",
-        xaxis_title='Date',
-        yaxis_title='Values',
+        title=dict(
+            text="<b>Team Tinfoil's Super Mega Prediction Data - Actual vs Predicted</b>",
+            x=0.5,
+            xanchor='center',
+            font=dict(size=18, color="white"),
+            y=0.95,
+            yanchor='top'
+        ),
+        showlegend=True,
+        template='plotly_dark',
         hovermode='x unified',
-        template='plotly_white'
+        font=dict(
+            family="Arial, sans-serif",
+            size=12,
+            color="white"
+        ),
+        paper_bgcolor='#1e1e1e',
+        plot_bgcolor='#2d2d2d',
+        autosize=True,
+        margin=dict(t=120, b=80, l=40, r=40),
+        legend=dict(
+            orientation="v",
+            yanchor="top",
+            y=1,
+            xanchor="left",
+            x=1.01,
+            font=dict(size=14)
+        )
     )
+    
+    # Update axes
+    fig.update_xaxes(title_text="<b>Date</b>", row=1, col=1)
+    fig.update_xaxes(title_text="<b>Date</b>", row=1, col=2)
+    fig.update_yaxes(title_text="<b>Reddit Count</b>", row=1, col=1)
+    fig.update_yaxes(title_text="<b>Twitter Count</b>", row=1, col=2)
+    
     
     return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
@@ -149,9 +227,10 @@ def index():
         if df.empty:
             return "No data found in BigQuery table", 404
         
-        # Create plot (prefer time series, fallback to bar chart)
-        plot_json = create_time_series_plot(df)
+        # Create separate plots for Reddit and Twitter
+        plot_json = create_separate_plots(df)
         if not plot_json:
+            # Fallback to single plot if separate plots fail
             plot_json = create_bar_plot(df)
         
         if not plot_json:
@@ -160,8 +239,36 @@ def index():
         # Convert to Plotly figure
         fig = go.Figure(json.loads(plot_json))
         
-        # Generate HTML string directly
-        html_string = pio.to_html(fig, include_plotlyjs=True, full_html=True)
+        # Generate HTML string directly with responsive config
+        html_string = pio.to_html(
+            fig, 
+            include_plotlyjs=True, 
+            full_html=True,
+            config={
+                'responsive': True,
+                'displayModeBar': True,
+                'fillFrame': True
+            }
+        )
+        
+        # Add custom CSS for full viewport
+        custom_css = """
+        <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .plotly-graph-div {
+            width: 100vw !important;
+            height: 100vh !important;
+        }
+        </style>
+        """
+        
+        # Insert CSS into the HTML
+        html_string = html_string.replace('<head>', f'<head>{custom_css}')
         
         # Return HTML directly
         return html_string
