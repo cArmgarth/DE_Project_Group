@@ -1,0 +1,9 @@
+[theme]
+base="dark"
+
+# Gruvbox Dark palette
+primaryColor="#d79921"          # yellow
+backgroundColor="#282828"       # dark bg
+secondaryBackgroundColor="#3c3836"  # lighter bg
+textColor="#ebdbb2"             # light fg
+font="monospace"

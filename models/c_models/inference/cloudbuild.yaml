@@ -1,0 +1,43 @@
+steps:
+  # Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/inference-service:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/inference-service:latest',
+      '-f', 'models/c_models/inference/Dockerfile',
+      'models/c_models/inference/'
+    ]
+
+  # Push the Docker image to Google Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/inference-service:$COMMIT_SHA']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/inference-service:latest']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: [
+      'run', 'deploy', 'inference-service',
+      '--image', 'gcr.io/$PROJECT_ID/inference-service:$COMMIT_SHA',
+      '--region', 'europe-west1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--port', '8080',
+      '--memory', '2Gi',
+      '--cpu', '2',
+      '--max-instances', '10',
+      '--service-account', '$PROJECT_ID@appspot.gserviceaccount.com',
+      '--set-env-vars', 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GCS_MODEL_BUCKET=tinfoil_trained_models,GCS_OUTPUT_BUCKET=tinfoil_trained_models,BIGQUERY_TABLE=team-tinfoil.predictions_data.predict_this'
+    ]
+
+# Store images in Google Container Registry
+images:
+  - 'gcr.io/$PROJECT_ID/inference-service:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/inference-service:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+  diskSizeGb: 100

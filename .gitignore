@@ -46,5 +46,6 @@ Thumbs.db
 # API keys and secrets
 secrets.json
 credentials.json
-.streamlit/
+.streamlit/secrets*
 frontend.json
+secret.json

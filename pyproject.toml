@@ -29,9 +29,10 @@ members = [
     "fetchers/reddit_api",
     "fetchers/twitter_api",
     "frontend",
-    "models/ridge_regression",
-    "models/lasso_regression",
-    "models/elasticnet_regression",
-    "models/loader",
+    "models/c_models",
+    "models/c_models/data_loader",
+    "models/c_models/model1",
+    "models/c_models/inference",
+    "frontend/flask_app",
 ]
 
