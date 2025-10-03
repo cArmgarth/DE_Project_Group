@@ -28,11 +28,9 @@ members = [
     "fetchers/nasa_api",
     "fetchers/reddit_api",
     "fetchers/twitter_api",
-    "frontend",
-    "models/c_models",
-    "models/c_models/data_loader",
-    "models/c_models/model1",
-    "models/c_models/inference",
+    "frontend/johntend",
     "frontend/flask_app",
+    "models/c_models/data_loader",
+    "models/c_models/inference",
+    "models/c_models/models",
 ]
-

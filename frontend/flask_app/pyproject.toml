@@ -1,5 +1,5 @@
 [project]
-name = "frontend"
+name = "frontend-flask"
 version = "0.1.0"
 description = "Flask API for BigQuery data visualization"
 readme = "README.md"
@@ -14,7 +14,7 @@ dependencies = [
     "db-dtypes>=1.4.3",
 ]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "ruff>=0.13.2",
 ]

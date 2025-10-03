@@ -65,8 +65,7 @@ with col1:
     st.line_chart(
         data=pred_df,
         x="date",
-        y=["RandomForestRegressor Reddit",
-            "ElasticNet Reddit", "True Reddit count"],
+        y=["RandomForestRegressor Reddit", "ElasticNet Reddit", "True Reddit count"],
         y_label="Reddit posts",
         color=["#ff4500", "#cc241d", "#98971a"],
     )
@@ -75,8 +74,7 @@ with col2:
     st.line_chart(
         data=pred_df,
         x="date",
-        y=["RandomForestRegressor Twitter",
-            "ElasticNet Twitter", "True Twitter count"],
+        y=["RandomForestRegressor Twitter", "ElasticNet Twitter", "True Twitter count"],
         y_label="Tweets",
         color=["#458588", "#268bd2", "#98971a"],
     )
@@ -111,7 +109,11 @@ for row in range(rows):
                 .mark_bar()
                 .encode(
                     x=alt.X("date:O", axis=None),
-                    y=alt.Y(metric, scale=alt.Scale(domain=[0, max_val])),
+                    y=alt.Y(
+                        metric,
+                        scale=alt.Scale(domain=[0, max_val]),
+                        axis=alt.Axis(title=None),
+                    ),
                 )
                 .properties(title=metric)
             )
