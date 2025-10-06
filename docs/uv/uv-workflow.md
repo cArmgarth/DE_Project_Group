@@ -1,5 +1,3 @@
-# OBS! ChatGPT blir ibland lite förvirrad, så några av dessa kommandon är lite knasiga. Ska försöka rensa upp i dem, men något fel kan förekomma vad gäller olika flaggor.
-
 # uv workspace quick reference (monorepo: fetchers + models + frontend)
 
 _Last updated: 2025-09-19_
