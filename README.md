@@ -15,10 +15,15 @@ The project is organized into three main components:
 - **Reddit API**: Monitors r/ufo subreddit for UFO-related posts
 - **Twitter API**: Tracks UFO-related hashtags and tweets
 
-### 🤖 Machine Learning (`models/c_models/`)
-- **Data Loader**: Loads training data from BigQuery
-- **Model Training**: Trains Random Forest regression models
-- **Inference Service**: Serves predictions via REST API
+### 🤖 Machine Learning (`models/`)
+- **C-Models** (`c_models/`):
+  - **Data Loader**: Loads training data from BigQuery
+  - **Model Training**: Trains Random Forest regression models
+  - **Inference Service**: Serves predictions via REST API
+- **J-Models** (`j_models/`):
+  - **ElasticNet Regression**: Linear regression with L1/L2 regularization
+  - **Lasso Regression**: L1 regularized linear regression
+  - **Ridge Regression**: L2 regularized linear regression
 
 ### 🎨 Frontend (`frontend/`)
 - **Streamlit App**: Data exploration interface
@@ -27,7 +32,7 @@ The project is organized into three main components:
 ## ✨ Key Features
 
 - **Multi-Source Data Collection**: Automated data fetching from NASA, Reddit, and Twitter
-- **Machine Learning Pipeline**: Random Forest models for activity prediction
+- **Machine Learning Pipeline**: Multiple ML approaches including Random Forest and ElasticNet regression
 - **Real-time Predictions**: REST API for live inference
 - **Interactive Visualizations**: Side-by-side comparison of actual vs. predicted values
 - **Cloud Integration**: BigQuery for data storage, GCS for model persistence
@@ -36,7 +41,7 @@ The project is organized into three main components:
 ## 🛠️ Technology Stack
 
 - **Languages**: Python 3.13+
-- **ML Framework**: scikit-learn (Random Forest)
+- **ML Framework**: scikit-learn (Random Forest, ElasticNet, Lasso, Ridge)
 - **Web Frameworks**: Flask, Streamlit
 - **Cloud Platform**: Google Cloud Platform
 - **Data Storage**: BigQuery, Google Cloud Storage
@@ -92,7 +97,13 @@ The project is organized into three main components:
 
 2. **Train ML Models**:
    ```bash
+   # C-Models (Random Forest)
    cd models/c_models/models && uv run python main.py
+   
+   # J-Models (ElasticNet, Lasso, Ridge)
+   cd models/j_models/elasticnet_regression && uv run python model.py
+   cd models/j_models/lasso_regression && uv run python model.py
+   cd models/j_models/ridge_regression && uv run python model.py
    ```
 
 3. **Start Inference Service**:
@@ -153,10 +164,15 @@ DE_Project_Group/
 │   ├── nasa_api/            # NASA Near Earth Objects
 │   ├── reddit_api/          # Reddit UFO discussions
 │   └── twitter_api/         # Twitter UFO hashtags
-├── models/c_models/         # ML pipeline
-│   ├── data_loader/         # BigQuery data loading
-│   ├── models/              # Model training
-│   └── inference/           # Prediction API
+├── models/                  # ML pipeline
+│   ├── c_models/           # Random Forest models
+│   │   ├── data_loader/    # BigQuery data loading
+│   │   ├── models/         # Model training
+│   │   └── inference/      # Prediction API
+│   └── j_models/           # Linear regression models
+│       ├── elasticnet_regression/
+│       ├── lasso_regression/
+│       └── ridge_regression/
 ├── frontend/                # Visualization interfaces
 │   ├── streamlit_app.py     # Data exploration
 │   └── flask_app/           # Interactive dashboard
@@ -167,7 +183,7 @@ DE_Project_Group/
 
 - **UFO Activity Monitoring**: Track discussions across platforms
 - **Trend Analysis**: Identify patterns in UFO-related content
-- **Predictive Analytics**: Forecast future activity levels
+- **Predictive Analytics**: Forecast future activity levels with multiple ML approaches
 - **Research Support**: Data-driven insights for UFO research
 - **Social Media Intelligence**: Understand public interest in UFOs
 
